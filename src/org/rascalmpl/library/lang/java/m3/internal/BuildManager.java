@@ -24,7 +24,6 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 public class BuildManager {
-//	private final MavenCli embedder = new MavenCli();
 	private Map<String, String> eclipseRepos = new HashMap<>();
 	
 	public BuildManager() {
@@ -39,26 +38,32 @@ public class BuildManager {
 	
 	public int resolveProject(String workingDirectory) throws Exception {
 		final String MAVEN_EXECUTABLE = System.getProperty("MAVEN_EXECUTABLE");
+		
 		if (MAVEN_EXECUTABLE == null) {
 			throw new Exception("Maven executable system property not set");
 		}
+		
 		if (workingDirectory.endsWith("/")) {
 			workingDirectory = workingDirectory.substring(0, workingDirectory.length()-1);
 		}
+		
 		File typeChecker = new File(workingDirectory + "/pom.xml");
 		String groupID = workingDirectory.substring(workingDirectory.lastIndexOf('/')+1);
 		int result = 0;
+		
 		if (!typeChecker.exists()) {
-			if (isEclispeProjectRoot(workingDirectory)) {
-//				result = embedder.doMain(new String[] {"org.eclipse.tycho:tycho-pomgenerator-plugin:generate-poms", "-DgroupId="+groupID}, workingDirectory, null, null);
+			if (isEclipseProjectRoot(workingDirectory)) {
 				ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "org.eclipse.tycho:tycho-pomgenerator-plugin:generate-poms", "-DgroupId="+groupID);
+
 				pb.directory(new File(workingDirectory));
+				
 				try {
 					Process p = pb.start();
 					p.waitFor();
 					result = p.exitValue();
 					result = rewritePOM(workingDirectory);
-				} catch (IOException | InterruptedException e) {
+				} 
+				catch (IOException | InterruptedException e) {
 					result = -1;
 				}
 			} else {
@@ -66,22 +71,24 @@ public class BuildManager {
 				result = -1;
 			}
 		}
+		
 		if (result == 0) {
-//			result = embedder.doMain(new String[] {"dependency:build-classpath", "-Dmdep.outputFile=cp.txt", "-X"}, workingDirectory, null, null);
 			ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "dependency:build-classpath", "-Dmdep.outputFile=cp.txt");
 			pb.directory(new File(workingDirectory));
+
 			try {
 				Process p = pb.start();
 				p.waitFor();
 				result = p.exitValue();
-			} catch (IOException | InterruptedException e) {
+			} 
+			catch (IOException | InterruptedException e) {
 				result = -1;
 			}
 		}
 		return result;
 	}
 
-	private boolean isEclispeProjectRoot(String workingDirectory) {
+	private boolean isEclipseProjectRoot(String workingDirectory) {
 		Path startingDir = Paths.get(workingDirectory);
 		String pattern = "{.project,.classpath,MANIFEST.MF}";
 		
@@ -99,22 +106,29 @@ public class BuildManager {
 		String pomFile = workingDirectory + "/pom.xml";
 		try (Reader reader = new FileReader(pomFile)) {
 			MavenXpp3Reader pomReader = new MavenXpp3Reader();
+			
 			Model model = pomReader.read(reader);
 			reader.close();
+			
 			model.addRepository(createRepo("maven_central", "http://repo.maven.apache.org/maven2/", "default"));
+			
 			for (String id: eclipseRepos.keySet()) {
 				model.addRepository(createRepo(id, eclipseRepos.get(id), "p2"));
 			}
+			
 			Build modelBuild = model.getBuild();
 			if (modelBuild == null) {
 				model.setBuild(new Build());
 			}
+			
 			model.getBuild().addPlugin(createPlugin("org.eclipse.tycho", "tycho-maven-plugin", "0.21.0", true));
 			model.getBuild().addPlugin(createPlugin("org.eclipse.tycho", "target-platform-configuration", "0.21.0", false));
 			model.getBuild().addPlugin(createPlugin("org.apache.maven.plugins", "maven-dependency-plugin", "2.8", false));
+			
 			MavenXpp3Writer pomWriter = new MavenXpp3Writer();
 			pomWriter.write(new FileWriter(pomFile), model);
-		} catch (IOException | XmlPullParserException e) {
+		} 
+		catch (IOException | XmlPullParserException e) {
 			return -1;
 		}
 		return 0;
