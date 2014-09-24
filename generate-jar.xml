@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project rascal-java-build-manager">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="./rascal-java-build-manager.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="org.rascalmpl.library.lang.java.m3.internal.BuildManager"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="./bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/aether-api-0.9.0.M2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/aether-connector-wagon-0.9.0.M2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/aether-impl-0.9.0.M2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/aether-spi-0.9.0.M2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/aether-util-0.9.0.M2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/aopalliance-1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/cdi-api-1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/commons-cli-1.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/commons-io-2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/commons-lang-2.6.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/guava-14.0.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/javax.inject-1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/jsoup-1.7.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/jsr250-api-1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-aether-provider-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-artifact-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-compat-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-core-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-embedder-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-model-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-model-builder-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-plugin-api-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-repository-metadata-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-settings-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/maven-settings-builder-3.2.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/org.eclipse.sisu.inject-0.0.0.M5.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/org.eclipse.sisu.plexus-0.0.0.M5.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/plexus-cipher-1.7.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/plexus-classworlds-2.5.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/plexus-component-annotations-1.5.5.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/plexus-interpolation-1.19.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/plexus-sec-dispatcher-1.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/plexus-utils-3.0.17.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/sisu-guice-3.1.3-no_aop.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/slf4j-api-1.7.5.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/slf4j-simple-1.7.5.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/wagon-file-2.6.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/wagon-http-2.6-shaded.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/wagon-http-shared-2.6.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/wagon-provider-api-2.6.jar"/>
+        </jar>
+    </target>
+</project>
