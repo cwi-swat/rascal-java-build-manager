@@ -102,6 +102,8 @@ public class BuildManager {
 		// Tycho does its magic here and writes a file into every subdirectory of workDirectory which is a maven project
 		ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "dependency:build-classpath", "-Dmdep.outputFile=" + MAVEN_CLASSPATH_TXT);
 		pb.directory(workingDirectory);
+		pb.inheritIO();
+		
 		Process process = pb.start();
 		if (process.waitFor() != 0) {
 			throw new BuildException("Retrieving classpath from maven failed because maven exited with a non-zero exit status");
@@ -145,6 +147,7 @@ public class BuildManager {
 		ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "org.eclipse.tycho:tycho-pomgenerator-plugin:generate-poms", "-DgroupId="+groupID);
 
 		pb.directory(workingDirectory);
+		pb.inheritIO();
 		
 		if (pb.start().waitFor() != 0) {
 			throw new BuildException("Maven/Tycho generated non-zero exit value while generating pom");

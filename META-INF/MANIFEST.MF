@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: rascal_java_build_manager
-Bundle-SymbolicName: rascal_java_build_manager
+Bundle-SymbolicName: rascal_java_build_manager;singleton:=true
 Bundle-Version: 0.0.1.qualifier
 Bundle-ClassPath: lib/aether-api-0.9.0.M2.jar,
  lib/aether-connector-wagon-0.9.0.M2.jar,
