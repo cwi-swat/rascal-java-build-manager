@@ -2,6 +2,7 @@ package org.rascalmpl.library.lang.java.m3.internal;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,12 +29,12 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 public class BuildManager {
 	private static final String MAVEN_CLASSPATH_TXT = "mavenClasspath.txt";
+	private final String mavenExecutable;
 	private Map<String, String> eclipseRepos = new HashMap<>();
 	
-	public BuildManager() {
-		eclipseRepos.put("juno", "http://download.eclipse.org/releases/juno");
-		eclipseRepos.put("kepler", "http://download.eclipse.org/releases/kepler");
-		eclipseRepos.put("luna", "http://download.eclipse.org/releases/luna");
+	public BuildManager(String mavenExecutable) {
+		assert mavenExecutable != null;
+		this.mavenExecutable = mavenExecutable;
 	}
 	
 	public void addEclipseRepositories(Map<String, String> repos) {
@@ -47,17 +48,12 @@ public class BuildManager {
 	 * @throws BuildException
 	 */
 	public Map<File,List<String>> getWorkspaceClasspath(File workingDirectory) throws BuildException {
-		final String MAVEN_EXECUTABLE = System.getProperty("MAVEN_EXECUTABLE");
-		if (MAVEN_EXECUTABLE == null) {
-			throw new BuildException("Maven executable system property not set");
-		}
-		
 		if (!pomExists(workingDirectory) && isEclipseProjectRoot(workingDirectory)) {
-			generatePOMFile(workingDirectory, MAVEN_EXECUTABLE);
+			generatePOMFile(workingDirectory, mavenExecutable);
 		}
 		
 		if (pomExists(workingDirectory)) {
-			return retrieveClasspath(workingDirectory, MAVEN_EXECUTABLE);
+			return retrieveClasspath(workingDirectory, mavenExecutable);
 		}
 		else {
 			return Collections.emptyMap();
@@ -68,59 +64,90 @@ public class BuildManager {
 		return pomFile(workingDirectory).exists();
 	}
 
-	private Map<File,List<String>> retrieveClasspath(File workingDirectory, String MAVEN_EXECUTABLE) throws BuildException {
-		// Tycho does its magic here and writes a file into every subdirectory of workDirectory which is a maven project
-		ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "dependency:build-classpath", "-Dmdep.outputFile=" + MAVEN_CLASSPATH_TXT);
-		
-		pb.directory(workingDirectory);
-
+	private Map<File,List<String>> retrieveClasspath(File workingDirectory, String maven) throws BuildException {
 		try {
-			Process process = pb.start();
-			if (process.waitFor() != 0) {
-				throw new BuildException("Retrieving classpath from maven failed because maven exited with a non-zero exit status");
-			}
-			
-			Map<File,List<String>> result = new HashMap<>();
-			
-			// now we read the magically constructed files and get the classpath information we need
-			for (File folder : workingDirectory.listFiles()) {
-				try (BufferedReader br = new BufferedReader(new FileReader(new File(folder, MAVEN_CLASSPATH_TXT)))) {
-					StringBuilder builder = new StringBuilder();
-					String line = null;
-					while ( (line = br.readLine()) != null) {
-						builder.append(line);
-					}
-
-					result.put(folder, Arrays.asList(builder.toString().split(";")));	
-				}
-			}
-			
-			return result;
+			runMaven(workingDirectory, maven);
+			return readMavenResults(workingDirectory);
 		} 
 		catch (IOException | InterruptedException e) {
 			throw new BuildException("Retrieving classpath from maven failed unexpectedly.", e);
 		}
 	}
 
+	/**
+	 * now we read the magically constructed files and get the classpath information we need
+     * first in the current directory, for single repository projects,
+	 * then in the nested directory, for multiple repository projects
+	 * @param workingDirectory
+	 * @return
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	private Map<File, List<String>> readMavenResults(File workingDirectory) throws IOException, FileNotFoundException {
+		Map<File,List<String>> result = new HashMap<>();
+		
+		readClassPathForFolder(workingDirectory, result);
+		
+		for (File folder : workingDirectory.listFiles()) {
+			if (folder.isDirectory()) {
+				readClassPathForFolder(folder, result);
+			}
+		}
+		
+		return result;
+	}
+
+	private void runMaven(File workingDirectory, String MAVEN_EXECUTABLE)
+			throws IOException, InterruptedException, BuildException {
+		// Tycho does its magic here and writes a file into every subdirectory of workDirectory which is a maven project
+		ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "dependency:build-classpath", "-Dmdep.outputFile=" + MAVEN_CLASSPATH_TXT);
+		pb.directory(workingDirectory);
+		Process process = pb.start();
+		if (process.waitFor() != 0) {
+			throw new BuildException("Retrieving classpath from maven failed because maven exited with a non-zero exit status");
+		}
+	}
+
+	private void readClassPathForFolder(File folder, Map<File, List<String>> result) throws IOException, FileNotFoundException {
+		File file = new File(folder, MAVEN_CLASSPATH_TXT);
+		
+		if (file.exists()) {
+			try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+				StringBuilder builder = new StringBuilder();
+				String line = null;
+				while ( (line = br.readLine()) != null) {
+					builder.append(line);
+				}
+
+				result.put(folder, Arrays.asList(builder.toString().split(":")));	
+			}
+		}
+	}
+
 	private void generatePOMFile(File workingDirectory, String MAVEN_EXECUTABLE) throws BuildException {
 		File pomFile = pomFile(workingDirectory);
-		String groupID = workingDirectory.getName();
 		
 		if (!pomFile.exists()) {
-			ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "org.eclipse.tycho:tycho-pomgenerator-plugin:generate-poms", "-DgroupId="+groupID);
-
-			pb.directory(workingDirectory);
-
 			try {
-				if (pb.start().waitFor() != 0) {
-					throw new BuildException("Maven/Tycho generated non-zero exit value while generating pom");
-				}
-				
+				generatePOMwithMaven(workingDirectory, MAVEN_EXECUTABLE);
 				rewritePOM(pomFile);
 			} 
 			catch (IOException | InterruptedException e) {
 				throw new BuildException("Could not generate pom.xml file", e);
 			}
+		}
+	}
+
+	private void generatePOMwithMaven(File workingDirectory,
+			String MAVEN_EXECUTABLE) throws InterruptedException, IOException,
+			BuildException {
+		String groupID = workingDirectory.getName();
+		ProcessBuilder pb = new ProcessBuilder(MAVEN_EXECUTABLE, "org.eclipse.tycho:tycho-pomgenerator-plugin:generate-poms", "-DgroupId="+groupID);
+
+		pb.directory(workingDirectory);
+		
+		if (pb.start().waitFor() != 0) {
+			throw new BuildException("Maven/Tycho generated non-zero exit value while generating pom");
 		}
 	}
 
