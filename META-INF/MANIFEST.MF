@@ -353,5 +353,4 @@ Export-Package: com.google.common.annotations,
  org.sonatype.plexus.components.sec.dispatcher,
  org.sonatype.plexus.components.sec.dispatcher.model,
  org.sonatype.plexus.components.sec.dispatcher.model.io.xpp3
-Require-Bundle: org.eclipse.imp.pdb.values;bundle-version="0.4.1",
- rascal
+Require-Bundle: rascal

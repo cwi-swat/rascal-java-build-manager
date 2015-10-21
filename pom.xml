@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>rascal_java_build_manager</artifactId>
-	<version>0.0.1.qualifier</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
 	<scm>
