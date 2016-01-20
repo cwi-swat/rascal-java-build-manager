@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -139,17 +140,10 @@ public class BuildManager {
 
 	private void readClassPathForFolder(File folder, Map<File, List<String>> result) throws IOException, FileNotFoundException {
 		File file = new File(folder, MAVEN_CLASSPATH_TXT);
-		
-		if (file.exists()) {
-			try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-				StringBuilder builder = new StringBuilder();
-				String line = null;
-				while ( (line = br.readLine()) != null) {
-					builder.append(line);
-				}
 
-				result.put(folder, Arrays.asList(builder.toString().split(":")));	
-			}
+		if (file.canRead()) {
+		    String contents = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+			result.put(folder, Arrays.asList(contents.split(":")));	
 		}
 	}
 
